@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="{{ asset('css/cand_profile.css') }}">
+</head>
+<body>
+    <section class="main-container">
+        <header>
+            <div class="logo">
+            <span class="log">
+                <span class="first-alp" id="first-alp">THE</span>
+                <span class="sec-alp">NexHire</span>
+            </span>
+                <a href="/" class="item">Home</a>
+                    <a href="/about" class="item">About Us</a>
+                    <a href="/contact" class="item">Contact Us</a>
+                    <a href="/customer" class="item">Our Customers</a>
+                    <a href="/plan" class="item">Our Plans</a>
+            </div>
+            <div class="btn-section">
+                <button class="btn">Profile</button>
+                <button class="btn">Logout</button>
+            </div>
+        </header>
+        @if($users && $candidate_certification && $candidate_experience && $candidate_reg && $candidate_skill)
+        <section class="hero">
+            <div class="left-hero">
+                {{-- <div class="profile-wrapper">
+                    <img src="./images/cand-pic.jpg" alt="candidate_Picture">
+                    <h3>{{$users->name}}</h3>
+                    <p><code>{{$users->email}}</code></p>
+                    <hr>
+                </div> --}}
+                <div class="experience-wrapper">
+                    <h2>Experience Informations</h2>
+                    <div class="row-wrapper" >
+                        <div class="col-wrapper">
+                            <p>Company: <span>{{$candidate_experience->company}}</span></p>
+                            <p>City: <span>{{$candidate_experience->city}}</span></p>
+                            <p>Country: <span>{{$candidate_experience->country}}</span></p>
+                        </div>
+                        <div class="col-wrapper">
+                            <p>Degree: <span>{{$candidate_experience->degree}}</span></p>
+                            <p>Started Date: <span>{{$candidate_experience->started_date}}</span></p>
+                            <p>End Date: <span>{{$candidate_experience->completed_date}}</span></p>
+                        </div>
+                    </div>
+                    <button style="text-decoration:none;font-size:18px;padding: 10px 32px;color: black;background: white;"><a href="/experience_edit" style="text-decoration:none;color:black">Edit</a></button>
+
+                </div>
+            </div>
+            <div class="right-hero">
+                <div class="personal-wrapper">
+                    <h2>Personal Informations</h2>
+                    <div class="row-wrapper">
+                        <div class="col-wrapper">
+                            <p>CNIC : <span>{{$candidate_reg->cnic}}</span> </p>
+                            <p>Phone : <span>{{$candidate_reg->phone}}</span> </p>
+                            <p>DOB : <span>{{$candidate_reg->dob}}</span> </p>
+                            <p>Father Name : <span>{{$candidate_reg->father_name}}</span> </p>
+                            <p>Gender : <span>{{$candidate_reg->gender}}</span> </p>
+                        </div>
+                        <div class="col-wrapper">
+                            <p>Religion : <span>{{$candidate_reg->religion}}</span> </p>
+                            <p>Section : <span>{{$candidate_reg->section}}</span> </p>
+                            <p>Address : <span>{{$candidate_reg->address}}</span> </p>
+                            <p>Nationality : <span>{{$candidate_reg->nationality}}</span> </p>
+                            <button style="text-decoration:none;font-size:18px; padding:10px,color: black;background: white;"><a style="text-decoration:none;color:black" href="/personal_edit">Edit </a></button>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="personal-wrapper">
+                    <h2>Qualification Informtions</h2>
+                    <div class="row-wrapper">
+                        <div class="col-wrapper">
+                            <p>School : <span>{{$candidate_certification->school}}</span> </p>
+                            <p>Degree : <span>{{$candidate_certification->degree}}</span> </p>
+                            <p>Area Of Study : <span>{{$candidate_certification->area}}</span> </p>
+                        </div>
+                        <div class="col-wrapper">
+                            <p>Start Dated : <span>{{$candidate_certification->started_date}}</span> </p>
+                            <p>End Dated : <span>{{$candidate_certification->completed_date}}</span> </p>
+                            <button style="text-decoration:none;font-size:18px; padding:10px,color: black;background: white;"><a style="text-decoration:none;color:black" href="/qualification_edit">Edit </a></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="personal-wrapper">
+                    <h2>Skills/Job Preference Informtions</h2>
+                    <div class="row-wrapper" style="flex-direction:column">
+                        <div class="col-wrapper">
+                            <p>Desired Job Title : <span>{{$candidate_skill->job_title}}</span> </p>
+                            <p>Prefered Work Location : <span>{{$candidate_skill->work_location}}</span> </p>
+                            <p>Prefered Industry : <span>{{$candidate_skill->company}}</span> </p>
+                        </div>
+                        <div class="col-wrapper">
+                            <p>Employment Type : <span>{{$candidate_skill->full_time}}</span> </p>
+                            <p>Expected Salary : <span>{{$candidate_skill->salary}}</span> </p>
+                            <p>Skills: <span>{{$candidate_skill->skills}}</span></p>
+                        </div>
+                        <button style="text-decoration:none;font-size:18px; padding: 10px 32px;color: black;background: white;max-width:100px;"><a style="text-decoration:none;color:black" href="/skill_edit">Edit </a></button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        @else
+        No Record FROUND
+        @endif
+    </section>
+</body>
+</html>

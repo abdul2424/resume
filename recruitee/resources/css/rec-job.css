@@ -1,0 +1,34 @@
+.jobs{
+    max-width: 90%;
+    margin: auto;
+    display: flex;
+    flex-direction: row;
+}
+.job-heading{
+    max-width: 90%;
+    margin: auto;
+    color: #37756A;
+    font-size: 30px;
+}
+.job-details{
+    margin-top: 30px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 20px;
+    border: 2px solid #37756A;
+}
+.job-item{
+    margin: 20px 10px;
+}
+.name{
+    padding: 10px;
+    background-color: #37756A;
+    color: white;
+}
+.detail{
+    padding: 10px;
+    color: #37756A;
+    border: 1px solid #37756A;
+}
