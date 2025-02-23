@@ -291,5 +291,6 @@
         <script src="{{asset('assets/assets/js/plugins.js')}}"></script>
         <script src="{{asset('assets/assets/js/main.js')}}"></script>
 
+        @yield('js')
     </body>
 </html>

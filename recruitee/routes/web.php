@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ContactController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RecruitersController;
 use App\Http\Controllers\StripePaymentController;
@@ -57,6 +58,7 @@ Route::get('/hello', function (Illuminate\Http\Request $req) {
 Route::view('/contact', 'frontend.contact')->name('frontend.contact');
 Route::post('/contact/store',[ContactController::class,'store'])->name('contact.store');
 Route::get('/otp/{id}',[RecruitersController::class,'sendOtp'])->name('otp.send');
+Route::post('/verify/otp',[RecruitersController::class,'verifyOtp'])->name('otp.verify');
 
 
 Route::get('/organization', function (Illuminate\Http\Request $req) {
@@ -90,7 +92,7 @@ Route::get('/candidate', function (Illuminate\Http\Request $req) {
               ->where('id', $uid)
               ->first();
     }
-    return view('candidate', compact('total_jobs','users'));
+    return view('frontend.cand_personal', compact('total_jobs','users'));
 
 });
 Route::post('/store-meeting', [RecruitersController::class, 'storeMeeting'])->name('store.meeting');

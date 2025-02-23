@@ -2,17 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\DemoMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Crypt;
+
 use Illuminate\Support\Facades\DB; // Import DB facade
-use Mail;
-use App\Models\Otp;
-use App\Mail\DemoMail;
+
+
+use Illuminate\Support\Facades\Mail;
+
 class RecruitersController extends Controller
 {
 
-    public function user_register(Request $req) {
+    public function user_register(Request $req)
+    {
         $valid = Validator::make($req->all(), [
             'name' => 'required',
             'email' => 'required|email|unique:users,email',
@@ -46,7 +50,8 @@ class RecruitersController extends Controller
     }
 
 
-    public function sendOtp($id) {
+    public function sendOtp($id)
+    {
 
         try {
             // Fetch the user by ID
@@ -59,7 +64,7 @@ class RecruitersController extends Controller
             // Generate a 6-digit OTP
             $otp = str_pad(mt_rand(0, 999999), 6, '0', STR_PAD_LEFT);
 
-           $otp =  DB::table('otp')->insert([
+            DB::table('otp')->insert([
                 'email' => $user->email,
                 'otp' => $otp,
             ]);
@@ -80,14 +85,35 @@ class RecruitersController extends Controller
         }
     }
 
+    public function verifyOtp(Request $request)
+    {
+        $otp = DB::table('otp')
+            ->where('otp', $request->otp)
+            ->where('email', $request->email)
+            ->first();
+    
+        if ($otp) {
+            // Delete the OTP record
+            DB::table('otp')
+                ->where('otp', $request->otp)
+                ->where('email', $request->email)
+                ->delete();
+    
+            return redirect('/login')->with('success', 'OTP Verified Successfully');
+        } else {
+            return redirect()->back()->with('error', 'OTP not matched');
+        }
+    }
+    
 
 
 
 
-    public function user_login(Request $req){
+    public function user_login(Request $req)
+    {
         $result = DB::table('users')
-                    ->where(['email' => $req->email])
-                    ->get();
+            ->where(['email' => $req->email])
+            ->get();
         $msg = "";
         if (isset($result[0])) {
             // $status = $result[0]->status;
@@ -139,7 +165,7 @@ class RecruitersController extends Controller
 
             // Process the form data and save it to the database
             $arr = [
-                "uid" =>$uid,
+                "uid" => $uid,
                 "tittle" => $validatedData['tittle'],
                 "location" => $validatedData['location'],
                 "job_category" => $validatedData['job_category'],
@@ -161,20 +187,19 @@ class RecruitersController extends Controller
             if ($query) {
                 // Redirect the user to a success page or perform any other action
                 $billing = DB::table('users')
-                ->where(['id' => $uid])
-                ->first();
-                if($billing->status_paid==1){
-                $data=['name'=>$billing->name];
-                $user['to']=$billing->email;
-                Mail::send('job_success',$data,function($messages) use ($user){
-                    $messages->to($user['to']);
-                    $messages->subject('Job Success');
-                });
+                    ->where(['id' => $uid])
+                    ->first();
+                if ($billing->status_paid == 1) {
+                    $data = ['name' => $billing->name];
+                    $user['to'] = $billing->email;
+                    Mail::send('job_success', $data, function ($messages) use ($user) {
+                        $messages->to($user['to']);
+                        $messages->subject('Job Success');
+                    });
                     return redirect('/');
-                }else {
+                } else {
                     return redirect('/plan');
                 }
-
             } else {
                 // Redirect the user back with an error message if insertion failed
                 return redirect()->back()->with('error', 'Failed to insert data.');
@@ -186,38 +211,38 @@ class RecruitersController extends Controller
     }
 
 
-  public function profile(Request $req)
-{
-    $total_jobs = []; // Initialize total_jobs array
-    $total_jobs_count = 0; // Initialize total_jobs_count variable
-    $users = null; // Initialize users variable
-    $meetings = []; // Initialize meetings array
+    public function profile(Request $req)
+    {
+        $total_jobs = []; // Initialize total_jobs array
+        $total_jobs_count = 0; // Initialize total_jobs_count variable
+        $users = null; // Initialize users variable
+        $meetings = []; // Initialize meetings array
 
-    if ($req->session()->has('FRONT_USER_ID')) {
-        $uid = $req->session()->get('FRONT_USER_ID');
+        if ($req->session()->has('FRONT_USER_ID')) {
+            $uid = $req->session()->get('FRONT_USER_ID');
 
-        // Retrieve total jobs and count
-        $total_jobs = DB::table('employer')
-              ->where('uid', $uid)
-              ->get();
-        $total_jobs_count = $total_jobs->count();
+            // Retrieve total jobs and count
+            $total_jobs = DB::table('employer')
+                ->where('uid', $uid)
+                ->get();
+            $total_jobs_count = $total_jobs->count();
 
-        // Retrieve user details
-        $users = DB::table('users')
-              ->where('id', $uid)
-              ->first();
+            // Retrieve user details
+            $users = DB::table('users')
+                ->where('id', $uid)
+                ->first();
 
-        // Retrieve meetings for each job
-        foreach ($total_jobs as $job) {
-            $job->meetings = DB::table('zoom_meetings')
-                                ->where('orgId', $job->id)
-                                ->get();
+            // Retrieve meetings for each job
+            foreach ($total_jobs as $job) {
+                $job->meetings = DB::table('zoom_meetings')
+                    ->where('orgId', $job->id)
+                    ->get();
+            }
         }
-    }
 
-    // Pass variables to the view
-    return view('profile', compact('total_jobs', 'total_jobs_count', 'users', 'meetings'));
-}
+        // Pass variables to the view
+        return view('profile', compact('total_jobs', 'total_jobs_count', 'users', 'meetings'));
+    }
 
 
     public function cand_profile(Request $req)
@@ -230,26 +255,26 @@ class RecruitersController extends Controller
 
             // Retrieve total jobs and count
             $total_jobs = DB::table('employer')
-                  ->where('uid', $uid)
-                  ->get();
+                ->where('uid', $uid)
+                ->get();
             $total_jobs_count = $total_jobs->count();
 
             // Retrieve user details
             $users = DB::table('users')
-                  ->where('id', $uid)
-                  ->first();
+                ->where('id', $uid)
+                ->first();
             $candidate_certification = DB::table('candidate_certification')
-                  ->where('user_id', $uid)
-                  ->first();
+                ->where('user_id', $uid)
+                ->first();
             $candidate_experience = DB::table('candidate_experience')
-                  ->where('user_id', $uid)
-                  ->first();
+                ->where('user_id', $uid)
+                ->first();
             $candidate_reg = DB::table('candidate_reg')
-                  ->where('user_id', $uid)
-                  ->first();
+                ->where('user_id', $uid)
+                ->first();
             $candidate_skill = DB::table('candidate_skill')
-                  ->where('user_id', $uid)
-                  ->first();
+                ->where('user_id', $uid)
+                ->first();
         }
 
         // Pass variables to the view
@@ -261,70 +286,70 @@ class RecruitersController extends Controller
         $total_jobs = []; // Initialize total_jobs array
         $total_jobs_count = 0; // Initialize total_jobs_count variable
         $users = null; // Initialize users variable
-            $uid = $req->id;
-            $orgId = request()->query('orgId');
-            if($orgId){
-         $req->session()->put('orgId', $orgId);
-            }
+        $uid = $req->id;
+        $orgId = request()->query('orgId');
+        if ($orgId) {
+            $req->session()->put('orgId', $orgId);
+        }
         $meetingData = DB::table('zoom_meetings')
-                        ->where('orgId', $orgId)
-                        ->first();
-                        // dd($meetingData);
-            // Retrieve total jobs and count
-            $total_jobs = DB::table('employer')
-                  ->where('uid', $uid)
-                  ->get();
-            $total_jobs_count = $total_jobs->count();
+            ->where('orgId', $orgId)
+            ->first();
+        // dd($meetingData);
+        // Retrieve total jobs and count
+        $total_jobs = DB::table('employer')
+            ->where('uid', $uid)
+            ->get();
+        $total_jobs_count = $total_jobs->count();
 
-            // Retrieve user details
-            $users = DB::table('users')
-                  ->where('id', $uid)
-                  ->first();
-            $candidate_certification = DB::table('candidate_certification')
-                  ->where('user_id', $uid)
-                  ->first();
-            $candidate_experience = DB::table('candidate_experience')
-                  ->where('user_id', $uid)
-                  ->first();
-            $candidate_reg = DB::table('candidate_reg')
-                  ->where('user_id', $uid)
-                  ->first();
-            $candidate_skill = DB::table('candidate_skill')
-                  ->where('user_id', $uid)
-                  ->first();
+        // Retrieve user details
+        $users = DB::table('users')
+            ->where('id', $uid)
+            ->first();
+        $candidate_certification = DB::table('candidate_certification')
+            ->where('user_id', $uid)
+            ->first();
+        $candidate_experience = DB::table('candidate_experience')
+            ->where('user_id', $uid)
+            ->first();
+        $candidate_reg = DB::table('candidate_reg')
+            ->where('user_id', $uid)
+            ->first();
+        $candidate_skill = DB::table('candidate_skill')
+            ->where('user_id', $uid)
+            ->first();
 
 
         // Pass variables to the view
-        return view('profile_of_cand', compact('orgId','meetingData','total_jobs', 'total_jobs_count', 'users', 'candidate_certification', 'candidate_experience', 'candidate_reg', 'candidate_skill'));
+        return view('profile_of_cand', compact('orgId', 'meetingData', 'total_jobs', 'total_jobs_count', 'users', 'candidate_certification', 'candidate_experience', 'candidate_reg', 'candidate_skill'));
     }
 
     public function plan(Request $req)
     {
         $users = null; // Initialize users variable
         $total_jobs_count = 0;
-        $charges=null;
-        $plan=null;
+        $charges = null;
+        $plan = null;
         if ($req->session()->has('FRONT_USER_ID')) {
             $uid = $req->session()->get('FRONT_USER_ID');
 
             // Retrieve user details
             $users = DB::table('users')
-                  ->where('id', $uid)
-                  ->first();
+                ->where('id', $uid)
+                ->first();
             $plan = DB::table('plans')
-                  ->get();
+                ->get();
 
             $charges = DB::table('charges')
-                  ->where('user_id', $uid)
-                  ->first();
+                ->where('user_id', $uid)
+                ->first();
 
-             $total_jobs = DB::table('employer')
-                  ->where('uid', $uid)
-                  ->get();
+            $total_jobs = DB::table('employer')
+                ->where('uid', $uid)
+                ->get();
             $total_jobs_count = $total_jobs->count();
         }
         // Pass variables to the view
-        return view('plan', compact('users','total_jobs_count','plan','charges'));
+        return view('plan', compact('users', 'total_jobs_count', 'plan', 'charges'));
     }
 
 
@@ -345,32 +370,32 @@ class RecruitersController extends Controller
         $address = $request->input('address');
 
         $users = null;
-            if ($request->session()->has('FRONT_USER_ID')) {
-                    $uid = $request->session()->get('FRONT_USER_ID');
-                $query = DB::table('candidate_reg')->insert([
-                    "user_id" => $uid,
-                    "first_name" => $firstName,
-                    "middle_name" => $middleName,
-                    "last_name" => $lastName,
-                    "cnic" => $cnic,
-                    "father_name" => $fname,
-                    "dob" => $dob,
-                    "nationality" => $nationality,
-                    "phone" => $phone,
-                    "email" => $email,
-                    "gender" => $gender,
-                    "religion" => $religon,
-                    "section" => $section,
-                    "address" => $address,
-                ]);
+        if ($request->session()->has('FRONT_USER_ID')) {
+            $uid = $request->session()->get('FRONT_USER_ID');
+            $query = DB::table('candidate_reg')->insert([
+                "user_id" => $uid,
+                "first_name" => $firstName,
+                "middle_name" => $middleName,
+                "last_name" => $lastName,
+                "cnic" => $cnic,
+                "father_name" => $fname,
+                "dob" => $dob,
+                "nationality" => $nationality,
+                "phone" => $phone,
+                "email" => $email,
+                "gender" => $gender,
+                "religion" => $religon,
+                "section" => $section,
+                "address" => $address,
+            ]);
 
-                // Check if data insertion was successful
-                if ($query) {
-                    return response()->json(['status' => 'success', 'msg' => 'Personal reqistration Added Successfully']);
-                } else {
-                    return response()->json(['status' => 'error', 'error' => 'Personal reqistration Not Added']);
-                }
+            // Check if data insertion was successful
+            if ($query) {
+                return response()->json(['status' => 'success', 'msg' => 'Personal reqistration Added Successfully']);
+            } else {
+                return response()->json(['status' => 'error', 'error' => 'Personal reqistration Not Added']);
             }
+        }
     }
 
     public function candidate_certificate(Request $request)
@@ -478,9 +503,9 @@ class RecruitersController extends Controller
             // Check if data insertion was successful
             if ($query) {
                 $users = DB::table('users')
-                  ->where('id', $uid)
-                  ->first();
-                return response()->json(['status' => 'success','billing'=>$users->status_paid, 'msg' => 'Skill details added successfully']);
+                    ->where('id', $uid)
+                    ->first();
+                return response()->json(['status' => 'success', 'billing' => $users->status_paid, 'msg' => 'Skill details added successfully']);
             } else {
                 return response()->json(['status' => 'error', 'error' => 'Failed to add skill details']);
             }
@@ -529,7 +554,7 @@ class RecruitersController extends Controller
             $candidateDegrees = DB::table('candidate_certification')->where('user_id', $uid)->pluck('degree')->unique()->toArray();
             $candidateSkills = DB::table('candidate_skill')->where('user_id', $uid)->pluck('skills')->unique()->toArray();
 
-            $processedCandidateData = self::preprocessCandidateData($uid,$candidate_reg, $candidate_certification, $candidate_experience, $candidate_skill, $candidateJobTitles, $candidateSkills, $candidateDegrees);
+            $processedCandidateData = self::preprocessCandidateData($uid, $candidate_reg, $candidate_certification, $candidate_experience, $candidate_skill, $candidateJobTitles, $candidateSkills, $candidateDegrees);
             $processedOrganizationData = self::preprocessOrganizationData($organizationData, $jobTitles, $jobCategories, $jobSkills, $jobDiscipline);
 
             $contentBasedModel = self::trainContentBasedModel($processedOrganizationData, $processedCandidateData);
@@ -539,7 +564,8 @@ class RecruitersController extends Controller
             foreach ($recommendedJobs as $orgId => $similarityScores) {
                 $recommendedOrganization = collect($organizationData)->where('id', $orgId)->first();
 
-                if ($recommendedOrganization &&
+                if (
+                    $recommendedOrganization &&
                     (
                         in_array($recommendedOrganization->skills, $candidateSkills) &&
                         in_array($recommendedOrganization->tittle, $candidateJobTitles) ||
@@ -548,30 +574,29 @@ class RecruitersController extends Controller
                         $recommendedOrganization->salary >= $candidate_skill->salary
                     )
                 ) {
-                    if($recommendedOrganization && $similarityScores && $similarityScores > $similarityThreshold){
-                            foreach ($similarityScores as $score) {
-                                $similarityScore = floatval($score);
-                                // dd($similarityScore);
+                    if ($recommendedOrganization && $similarityScores && $similarityScores > $similarityThreshold) {
+                        foreach ($similarityScores as $score) {
+                            $similarityScore = floatval($score);
+                            // dd($similarityScore);
 
-                                    if ($similarityScore > 0) {
-                                        $recommendedJobsDetails[] = [
-                                            'id' => $recommendedOrganization->id,
-                                            'title' => $recommendedOrganization->tittle,
-                                            'location' => $recommendedOrganization->location,
-                                            'experience' => $recommendedOrganization->experience,
-                                            'discipline' => $recommendedOrganization->discipline,
-                                            'discipline_category' => $recommendedOrganization->discipline_category,
-                                            'job_category' => $recommendedOrganization->job_category,
-                                            'job_sub_category' => $recommendedOrganization->job_sub_category,
-                                            'job_type' => $recommendedOrganization->job_type,
-                                            'skills' => $recommendedOrganization->skills,
-                                            'similarity_score' => $similarityScore, // Use individual similarity score
-                                        ];
-                                    }
+                            if ($similarityScore > 0) {
+                                $recommendedJobsDetails[] = [
+                                    'id' => $recommendedOrganization->id,
+                                    'title' => $recommendedOrganization->tittle,
+                                    'location' => $recommendedOrganization->location,
+                                    'experience' => $recommendedOrganization->experience,
+                                    'discipline' => $recommendedOrganization->discipline,
+                                    'discipline_category' => $recommendedOrganization->discipline_category,
+                                    'job_category' => $recommendedOrganization->job_category,
+                                    'job_sub_category' => $recommendedOrganization->job_sub_category,
+                                    'job_type' => $recommendedOrganization->job_type,
+                                    'skills' => $recommendedOrganization->skills,
+                                    'similarity_score' => $similarityScore, // Use individual similarity score
+                                ];
                             }
+                        }
                     }
                 }
-
             }
 
             // dd($recommendedJobsDetails);
@@ -599,83 +624,83 @@ class RecruitersController extends Controller
     }
 
     public static function preprocessOrganizationData($organizationData, $jobTitles, $jobCategories, $jobSkills, $jobDiscipline)
-{
-    $processedOrganizationData = [];
+    {
+        $processedOrganizationData = [];
 
-    // Iterate through each organization entry
-    foreach ($organizationData as $org) {
+        // Iterate through each organization entry
+        foreach ($organizationData as $org) {
+            // Perform one-hot encoding for categorical variables
+            $encodedTittle = self::oneHotEncode($org->tittle, $jobTitles);
+            $encodedSkill = self::oneHotEncode($org->skills, $jobSkills);
+            $discipline = $org->discipline . "-" . $org->discipline_category; // Ensure proper concatenation
+            $encodedDiscipline = self::oneHotEncode($discipline, $jobDiscipline);
+
+            // Normalize numerical features
+            $normalizedExperience = self::normalize($org->experience);
+            $normalizedSalary = self::normalize($org->salary);
+
+            // Construct a feature vector for each organization entry
+            $featureVector = array_merge($encodedTittle, $encodedSkill, $encodedDiscipline, [$normalizedExperience, $normalizedSalary]);
+
+            // Add the feature vector to the processed data with organization ID as key
+            $processedOrganizationData[$org->id] = $featureVector;
+        }
+
+        return $processedOrganizationData;
+    }
+
+
+    public static function preprocessCandidateData($candidateId, $candidate_reg, $candidate_certification, $candidate_experience, $candidate_skill, $jobTitles, $jobSkills, $degrees)
+    {
+        $processedCandidateData = [];
+
         // Perform one-hot encoding for categorical variables
-        $encodedTittle = self::oneHotEncode($org->tittle, $jobTitles);
-        $encodedSkill = self::oneHotEncode($org->skills, $jobSkills);
-        $discipline = $org->discipline . "-" . $org->discipline_category; // Ensure proper concatenation
-        $encodedDiscipline = self::oneHotEncode($discipline, $jobDiscipline);
+        if ($candidate_certification) {
+            $encodedDegree = self::oneHotEncode($candidate_certification->degree, $degrees);
+        } else {
+            $encodedDegree = array_fill(0, count($degrees), 0);
+        }
 
-        // Normalize numerical features
-        $normalizedExperience = self::normalize($org->experience);
-        $normalizedSalary = self::normalize($org->salary);
+        if ($candidate_skill) {
+            $encodedTittle = self::oneHotEncode($candidate_skill->job_title, $jobTitles);
+            $normalizedSalary = self::normalize($candidate_skill->salary);
+            $encodedSkill = self::oneHotEncode($candidate_skill->skills, $jobSkills);
+        } else {
+            // Fill with zeros if candidate_skill is not available
+            $encodedTittle = array_fill(0, count($jobTitles), 0);
+            $normalizedSalary = 0;
+            $encodedSkill = array_fill(0, count($jobSkills), 0);
+        }
 
-        // Construct a feature vector for each organization entry
-        $featureVector = array_merge($encodedTittle, $encodedSkill, $encodedDiscipline, [$normalizedExperience, $normalizedSalary]);
+        if ($candidate_experience) {
+            $normalizedExperience = self::normalize($candidate_experience->experience);
+        } else {
+            $normalizedExperience = 0;
+        }
 
-        // Add the feature vector to the processed data with organization ID as key
-        $processedOrganizationData[$org->id] = $featureVector;
+        // Construct a feature vector for each candidate entry
+        $featureVector = array_merge($encodedDegree, $encodedSkill, $encodedTittle, [$normalizedSalary, $normalizedExperience]);
+
+        // Add the feature vector to the processed data with candidate ID as key
+        $processedCandidateData[$candidateId] = $featureVector;
+
+        return $processedCandidateData;
     }
 
-    return $processedOrganizationData;
-}
 
+    public static function oneHotEncode($category, $categories)
+    {
+        // Initialize an array for encoded category
+        $encodedCategory = array_fill(0, count($categories), 0);
 
-public static function preprocessCandidateData($candidateId, $candidate_reg, $candidate_certification, $candidate_experience, $candidate_skill, $jobTitles, $jobSkills, $degrees)
-{
-    $processedCandidateData = [];
+        // Find the index of the category and set it to 1
+        $index = array_search($category, $categories);
+        if ($index !== false) {
+            $encodedCategory[$index] = 1;
+        }
 
-    // Perform one-hot encoding for categorical variables
-    if ($candidate_certification) {
-        $encodedDegree = self::oneHotEncode($candidate_certification->degree, $degrees);
-    } else {
-        $encodedDegree = array_fill(0, count($degrees), 0);
+        return $encodedCategory;
     }
-
-    if ($candidate_skill) {
-        $encodedTittle = self::oneHotEncode($candidate_skill->job_title, $jobTitles);
-        $normalizedSalary = self::normalize($candidate_skill->salary);
-        $encodedSkill = self::oneHotEncode($candidate_skill->skills, $jobSkills);
-    } else {
-        // Fill with zeros if candidate_skill is not available
-        $encodedTittle = array_fill(0, count($jobTitles), 0);
-        $normalizedSalary = 0;
-        $encodedSkill = array_fill(0, count($jobSkills), 0);
-    }
-
-    if ($candidate_experience) {
-        $normalizedExperience = self::normalize($candidate_experience->experience);
-    } else {
-        $normalizedExperience = 0;
-    }
-
-    // Construct a feature vector for each candidate entry
-    $featureVector = array_merge($encodedDegree, $encodedSkill, $encodedTittle, [$normalizedSalary, $normalizedExperience]);
-
-    // Add the feature vector to the processed data with candidate ID as key
-    $processedCandidateData[$candidateId] = $featureVector;
-
-    return $processedCandidateData;
-}
-
-
-public static function oneHotEncode($category, $categories)
-{
-    // Initialize an array for encoded category
-    $encodedCategory = array_fill(0, count($categories), 0);
-
-    // Find the index of the category and set it to 1
-    $index = array_search($category, $categories);
-    if ($index !== false) {
-        $encodedCategory[$index] = 1;
-    }
-
-    return $encodedCategory;
-}
 
 
     // Function to normalize numerical features
@@ -717,37 +742,37 @@ public static function oneHotEncode($category, $categories)
     }
 
     public static function calculateSimilarity($orgFeatures, $candidateFeatures)
-{
-    // Calculate cosine similarity between organization and candidate feature vectors
-    $dotProduct = array_sum(array_map(function ($a, $b) {
-        return $a * $b;
-    }, $orgFeatures, $candidateFeatures));
-    $orgNorm = sqrt(array_sum(array_map(function ($x) {
-        return $x * $x;
-    }, $orgFeatures)));
-    $candidateNorm = sqrt(array_sum(array_map(function ($x) {
-        return $x * $x;
-    }, $candidateFeatures)));
-    $similarity = $dotProduct / ($orgNorm * $candidateNorm);
-    return $similarity;
-}
+    {
+        // Calculate cosine similarity between organization and candidate feature vectors
+        $dotProduct = array_sum(array_map(function ($a, $b) {
+            return $a * $b;
+        }, $orgFeatures, $candidateFeatures));
+        $orgNorm = sqrt(array_sum(array_map(function ($x) {
+            return $x * $x;
+        }, $orgFeatures)));
+        $candidateNorm = sqrt(array_sum(array_map(function ($x) {
+            return $x * $x;
+        }, $candidateFeatures)));
+        $similarity = $dotProduct / ($orgNorm * $candidateNorm);
+        return $similarity;
+    }
 
-public static function recommendJobs(array $contentBasedModel, int $numRecommendations = 4): array
-{
-  $recommendedJobs = [];
+    public static function recommendJobs(array $contentBasedModel, int $numRecommendations = 4): array
+    {
+        $recommendedJobs = [];
 
-  // Iterate through each organization's sorted candidate scores
-//   dd($contentBasedModel);
-  foreach ($contentBasedModel as $orgId => $candidateScores) {
-    // Extract top `$numRecommendations` candidate IDs with highest similarity scores
-    $topCandidates = array_slice($candidateScores, 0, $numRecommendations, true);
+        // Iterate through each organization's sorted candidate scores
+        //   dd($contentBasedModel);
+        foreach ($contentBasedModel as $orgId => $candidateScores) {
+            // Extract top `$numRecommendations` candidate IDs with highest similarity scores
+            $topCandidates = array_slice($candidateScores, 0, $numRecommendations, true);
 
-    // Add recommended organization ID and corresponding similarity scores
-    $recommendedJobs[$orgId] = $topCandidates;
-  }
+            // Add recommended organization ID and corresponding similarity scores
+            $recommendedJobs[$orgId] = $topCandidates;
+        }
 
-  return $recommendedJobs;
-}
+        return $recommendedJobs;
+    }
 
 
 
@@ -762,24 +787,24 @@ public static function recommendJobs(array $contentBasedModel, int $numRecommend
     {
 
         $total_jobs = 0; // Default value
-        $users=null;
-        $candidate_certification=null;
+        $users = null;
+        $candidate_certification = null;
         // Check if the user is logged in
 
 
-            // Check if user is logged in
-            if ($req->session()->has('FRONT_USER_ID')) {
-                $uid = $req->session()->get('FRONT_USER_ID');
-                $total_jobs = DB::table('employer')
-                      ->where('uid', $uid)
-                      ->count();
-                $users = DB::table('users')
-                      ->where('id', $uid)
-                      ->first();
-               $candidate_reg = DB::table('candidate_reg')
-                      ->where('user_id', $uid)
-                      ->first();
-            return view('cand_personal_edit', compact('total_jobs','users','candidate_reg'));
+        // Check if user is logged in
+        if ($req->session()->has('FRONT_USER_ID')) {
+            $uid = $req->session()->get('FRONT_USER_ID');
+            $total_jobs = DB::table('employer')
+                ->where('uid', $uid)
+                ->count();
+            $users = DB::table('users')
+                ->where('id', $uid)
+                ->first();
+            $candidate_reg = DB::table('candidate_reg')
+                ->where('user_id', $uid)
+                ->first();
+            return view('cand_personal_edit', compact('total_jobs', 'users', 'candidate_reg'));
         } else {
             return response()->json(['status' => 'error', 'error' => 'User not logged in']);
         }
@@ -789,24 +814,24 @@ public static function recommendJobs(array $contentBasedModel, int $numRecommend
     {
 
         $total_jobs = 0; // Default value
-        $users=null;
-        $candidate_certification=null;
+        $users = null;
+        $candidate_certification = null;
         // Check if the user is logged in
 
 
-            // Check if user is logged in
-            if ($req->session()->has('FRONT_USER_ID')) {
-                $uid = $req->session()->get('FRONT_USER_ID');
-                $total_jobs = DB::table('employer')
-                      ->where('uid', $uid)
-                      ->count();
-                $users = DB::table('users')
-                      ->where('id', $uid)
-                      ->first();
-               $candidate_reg = DB::table('candidate_certification')
-                      ->where('user_id', $uid)
-                      ->first();
-            return view('cand_qualification_edit', compact('total_jobs','users','candidate_reg'));
+        // Check if user is logged in
+        if ($req->session()->has('FRONT_USER_ID')) {
+            $uid = $req->session()->get('FRONT_USER_ID');
+            $total_jobs = DB::table('employer')
+                ->where('uid', $uid)
+                ->count();
+            $users = DB::table('users')
+                ->where('id', $uid)
+                ->first();
+            $candidate_reg = DB::table('candidate_certification')
+                ->where('user_id', $uid)
+                ->first();
+            return view('cand_qualification_edit', compact('total_jobs', 'users', 'candidate_reg'));
         } else {
             return response()->json(['status' => 'error', 'error' => 'User not logged in']);
         }
@@ -817,24 +842,24 @@ public static function recommendJobs(array $contentBasedModel, int $numRecommend
     {
 
         $total_jobs = 0; // Default value
-        $users=null;
-        $candidate_certification=null;
+        $users = null;
+        $candidate_certification = null;
         // Check if the user is logged in
 
 
-            // Check if user is logged in
-            if ($req->session()->has('FRONT_USER_ID')) {
-                $uid = $req->session()->get('FRONT_USER_ID');
-                $total_jobs = DB::table('employer')
-                      ->where('uid', $uid)
-                      ->count();
-                $users = DB::table('users')
-                      ->where('id', $uid)
-                      ->first();
-               $candidate_skill = DB::table('candidate_skill')
-                      ->where('user_id', $uid)
-                      ->first();
-            return view('cand_skill_edit', compact('total_jobs','users','candidate_skill'));
+        // Check if user is logged in
+        if ($req->session()->has('FRONT_USER_ID')) {
+            $uid = $req->session()->get('FRONT_USER_ID');
+            $total_jobs = DB::table('employer')
+                ->where('uid', $uid)
+                ->count();
+            $users = DB::table('users')
+                ->where('id', $uid)
+                ->first();
+            $candidate_skill = DB::table('candidate_skill')
+                ->where('user_id', $uid)
+                ->first();
+            return view('cand_skill_edit', compact('total_jobs', 'users', 'candidate_skill'));
         } else {
             return response()->json(['status' => 'error', 'error' => 'User not logged in']);
         }
@@ -844,284 +869,281 @@ public static function recommendJobs(array $contentBasedModel, int $numRecommend
     {
 
         $total_jobs = 0; // Default value
-        $users=null;
-        $candidate_certification=null;
+        $users = null;
+        $candidate_certification = null;
         // Check if the user is logged in
 
 
-            // Check if user is logged in
-            if ($req->session()->has('FRONT_USER_ID')) {
-                $uid = $req->session()->get('FRONT_USER_ID');
-                $total_jobs = DB::table('employer')
-                      ->where('uid', $uid)
-                      ->count();
-                $users = DB::table('users')
-                      ->where('id', $uid)
-                      ->first();
-               $candidate_experience = DB::table('candidate_experience')
-                      ->where('user_id', $uid)
-                      ->first();
-            return view('cand_experience_edit', compact('total_jobs','users','candidate_experience'));
+        // Check if user is logged in
+        if ($req->session()->has('FRONT_USER_ID')) {
+            $uid = $req->session()->get('FRONT_USER_ID');
+            $total_jobs = DB::table('employer')
+                ->where('uid', $uid)
+                ->count();
+            $users = DB::table('users')
+                ->where('id', $uid)
+                ->first();
+            $candidate_experience = DB::table('candidate_experience')
+                ->where('user_id', $uid)
+                ->first();
+            return view('cand_experience_edit', compact('total_jobs', 'users', 'candidate_experience'));
         } else {
             return response()->json(['status' => 'error', 'error' => 'User not logged in']);
         }
     }
     public function user_cand_profile_edit(Request $request)
-{
-    // Retrieve form data
-    $cnic = $request->input('cnic');
-    $fname = $request->input('fname');
-    $dob = $request->input('dob');
-    $nationality = $request->input('nationality');
-    $phone = $request->input('phone');
-    $gender = $request->input('gender');
-    $religion = $request->input('religion'); // corrected variable name
-    $section = $request->input('section');
-    $address = $request->input('address');
+    {
+        // Retrieve form data
+        $cnic = $request->input('cnic');
+        $fname = $request->input('fname');
+        $dob = $request->input('dob');
+        $nationality = $request->input('nationality');
+        $phone = $request->input('phone');
+        $gender = $request->input('gender');
+        $religion = $request->input('religion'); // corrected variable name
+        $section = $request->input('section');
+        $address = $request->input('address');
 
-    // Handle image upload
-    // if ($request->hasFile('dp')) {
-    //     $image = $request->file('dp');
-    //     $imageData = file_get_contents($image);
-    // } else {
-    //     $imageData = null; // No image uploaded
-    // }
+        // Handle image upload
+        // if ($request->hasFile('dp')) {
+        //     $image = $request->file('dp');
+        //     $imageData = file_get_contents($image);
+        // } else {
+        //     $imageData = null; // No image uploaded
+        // }
 
-    // Update database
-    if ($request->session()->has('FRONT_USER_ID')) {
-        $uid = $request->session()->get('FRONT_USER_ID');
+        // Update database
+        if ($request->session()->has('FRONT_USER_ID')) {
+            $uid = $request->session()->get('FRONT_USER_ID');
 
-        $query = DB::table('candidate_reg')
-            ->where('user_id', $uid)
-            ->update([
-                "cnic" => $cnic,
-                "father_name" => $fname,
-                "dob" => $dob,
-                "nationality" => $nationality,
-                "phone" => $phone,
-                "gender" => $gender,
-                "religion" => $religion,
-                "section" => $section,
-                "address" => $address,
-            ]);
+            $query = DB::table('candidate_reg')
+                ->where('user_id', $uid)
+                ->update([
+                    "cnic" => $cnic,
+                    "father_name" => $fname,
+                    "dob" => $dob,
+                    "nationality" => $nationality,
+                    "phone" => $phone,
+                    "gender" => $gender,
+                    "religion" => $religion,
+                    "section" => $section,
+                    "address" => $address,
+                ]);
 
 
-        // Check if data update was successful
-        if ($query) {
-            return redirect('/cand_profile');
+            // Check if data update was successful
+            if ($query) {
+                return redirect('/cand_profile');
+            } else {
+                return response()->json(['status' => 'error', 'error' => 'Failed to update personal registration']);
+            }
         } else {
-            return response()->json(['status' => 'error', 'error' => 'Failed to update personal registration']);
+            return response()->json(['status' => 'error', 'error' => 'User not logged in']);
         }
-    } else {
-        return response()->json(['status' => 'error', 'error' => 'User not logged in']);
     }
-}
 
 
-public function user_cand_experience_edit(Request $request)
-{
-    // Retrieve form data
-    $company = $request->input('company');
-    $city = $request->input('city');
-    $country = $request->input('country');
-    $degree = $request->input('degree');
-    $startedDate = $request->input('startedDate');
-    $completedDate = $request->input('completedDate');
-    $description = $request->input('description');
+    public function user_cand_experience_edit(Request $request)
+    {
+        // Retrieve form data
+        $company = $request->input('company');
+        $city = $request->input('city');
+        $country = $request->input('country');
+        $degree = $request->input('degree');
+        $startedDate = $request->input('startedDate');
+        $completedDate = $request->input('completedDate');
+        $description = $request->input('description');
 
-    // Update database
-    if ($request->session()->has('FRONT_USER_ID')) {
-        $uid = $request->session()->get('FRONT_USER_ID');
+        // Update database
+        if ($request->session()->has('FRONT_USER_ID')) {
+            $uid = $request->session()->get('FRONT_USER_ID');
 
-        $query = DB::table('candidate_experience')
-            ->where('user_id', $uid)
-            ->update([
-                "company" => $company,
-                "city" => $city,
-                "country" => $country,
-                "degree" => $degree,
-                "started_date" => $startedDate,
-                "completed_date" => $completedDate,
-                "description" => $description,
-            ]);
+            $query = DB::table('candidate_experience')
+                ->where('user_id', $uid)
+                ->update([
+                    "company" => $company,
+                    "city" => $city,
+                    "country" => $country,
+                    "degree" => $degree,
+                    "started_date" => $startedDate,
+                    "completed_date" => $completedDate,
+                    "description" => $description,
+                ]);
 
-        // Check if data update was successful
-        if ($query) {
-            return redirect('/cand_profile');
+            // Check if data update was successful
+            if ($query) {
+                return redirect('/cand_profile');
+            } else {
+                return response()->json(['status' => 'error', 'error' => 'Failed to update experience']);
+            }
         } else {
-            return response()->json(['status' => 'error', 'error' => 'Failed to update experience']);
+            return response()->json(['status' => 'error', 'error' => 'User not logged in']);
         }
-    } else {
-        return response()->json(['status' => 'error', 'error' => 'User not logged in']);
     }
-}
 
-public function user_cand_skill_edit(Request $request)
-{
-    // Retrieve form data
-    $jobTitle = $request->input('jobTitle');
-    $workLocation = $request->input('workLocation');
-    $company = $request->input('company');
-    $salary = $request->input('salary');
-    $skills = $request->input('skills');
-    $jobTypes = $request->input('job_type');
-    $resume = $request->file('resume');
+    public function user_cand_skill_edit(Request $request)
+    {
+        // Retrieve form data
+        $jobTitle = $request->input('jobTitle');
+        $workLocation = $request->input('workLocation');
+        $company = $request->input('company');
+        $salary = $request->input('salary');
+        $skills = $request->input('skills');
+        $jobTypes = $request->input('job_type');
+        $resume = $request->file('resume');
 
-    // Update database
-    if ($request->session()->has('FRONT_USER_ID')) {
-        $uid = $request->session()->get('FRONT_USER_ID');
+        // Update database
+        if ($request->session()->has('FRONT_USER_ID')) {
+            $uid = $request->session()->get('FRONT_USER_ID');
 
-        $query = DB::table('candidate_skill')
-            ->where('user_id', $uid)
-            ->update([
-                "job_title" => $jobTitle,
-                "work_location" => $workLocation,
-                "company" => $company,
-                "salary" => $salary,
-                "skills" => $skills,
-                "full_time" => implode(',', $jobTypes), // Convert array to comma-separated string
-            ]);
+            $query = DB::table('candidate_skill')
+                ->where('user_id', $uid)
+                ->update([
+                    "job_title" => $jobTitle,
+                    "work_location" => $workLocation,
+                    "company" => $company,
+                    "salary" => $salary,
+                    "skills" => $skills,
+                    "full_time" => implode(',', $jobTypes), // Convert array to comma-separated string
+                ]);
 
-        // Handle resume upload if provided
-        if ($resume) {
-            // Logic to upload and store the resume file in a directory or database
-        }
+            // Handle resume upload if provided
+            if ($resume) {
+                // Logic to upload and store the resume file in a directory or database
+            }
 
-        // Check if data update was successful
-        if ($query) {
-            return redirect('/cand_profile');
+            // Check if data update was successful
+            if ($query) {
+                return redirect('/cand_profile');
+            } else {
+                return response()->json(['status' => 'error', 'error' => 'Failed to update skills']);
+            }
         } else {
-            return response()->json(['status' => 'error', 'error' => 'Failed to update skills']);
+            return response()->json(['status' => 'error', 'error' => 'User not logged in']);
         }
-    } else {
-        return response()->json(['status' => 'error', 'error' => 'User not logged in']);
     }
-}
 
 
-public function user_cand_qualification(Request $request)
-{
-    // Retrieve form data
-    $school = $request->input('school');
-    $degreeStarted = $request->input('degreeStarted');
-    $degreeCompletion = $request->input('degreeCompletion');
-    $degree = $request->input('degree');
-    $area = $request->input('subCategory');
+    public function user_cand_qualification(Request $request)
+    {
+        // Retrieve form data
+        $school = $request->input('school');
+        $degreeStarted = $request->input('degreeStarted');
+        $degreeCompletion = $request->input('degreeCompletion');
+        $degree = $request->input('degree');
+        $area = $request->input('subCategory');
 
 
-    if ($request->session()->has('FRONT_USER_ID')) {
-        $uid = $request->session()->get('FRONT_USER_ID');
+        if ($request->session()->has('FRONT_USER_ID')) {
+            $uid = $request->session()->get('FRONT_USER_ID');
 
-        $query = DB::table('candidate_certification')
-            ->where('user_id', $uid)
-            ->update([
-                "school" => $school,
-                "started_date" => $degreeStarted,
-                "completed_date" => $degreeCompletion,
-                "degree" => $degree,
-                "area" => $area,
-            ]);
+            $query = DB::table('candidate_certification')
+                ->where('user_id', $uid)
+                ->update([
+                    "school" => $school,
+                    "started_date" => $degreeStarted,
+                    "completed_date" => $degreeCompletion,
+                    "degree" => $degree,
+                    "area" => $area,
+                ]);
 
 
-        // Check if data update was successful
-        if ($query) {
-            return redirect('/cand_profile');
+            // Check if data update was successful
+            if ($query) {
+                return redirect('/cand_profile');
+            } else {
+                return response()->json(['status' => 'error', 'error' => 'Failed to update personal registration']);
+            }
         } else {
-            return response()->json(['status' => 'error', 'error' => 'Failed to update personal registration']);
-        }
-    } else {
-        return response()->json(['status' => 'error', 'error' => 'User not logged in']);
-    }
-}
-
-
-
-
-public function notify_organization(Request $req)
-{
-    $orgId = $req->orgId;
-
-    // Retrieve organization details
-    $org = DB::table('employer')->where('id', $orgId)->first();
-    $uid = $org->uid;
-    $orgEmail = DB::table('users')->where('id', $uid)->first();
-    // Retrieve candidate details
-    $candidateName = '';
-    if ($req->session()->has('FRONT_USER_ID')) {
-        $cand_uid = $req->session()->get('FRONT_USER_ID');
-        $candidate = DB::table('users')->select('name')->where('id', $cand_uid)->first();
-        if ($candidate) {
-            $candidateName = $candidate->name;
+            return response()->json(['status' => 'error', 'error' => 'User not logged in']);
         }
     }
 
-    // Compose email data
-    $data = [
-        'name' => $candidateName,
-        'tittle' => $org->tittle,
-        'cand_uid' => $cand_uid,
-        'orgId' => $orgId,
-        // Add more candidate profile information here if needed
-    ];
 
-    $recipientEmail = $orgEmail->email;
 
-    // Send email notification to organization
-    Mail::send('candidate_found', $data, function($message) use ($recipientEmail) {
-        $message->to($recipientEmail)
-                ->subject('Notification: Candidate Found');
-    });
 
-    // Return a response indicating success or failure
-    return response()->json(['status' => 'success']);
-}
+    public function notify_organization(Request $req)
+    {
+        $orgId = $req->orgId;
 
-public function storeMeeting(Request $req)
-{
-    if ($req->session()->has('FRONT_USER_ID') && $req->session()->has('orgId')) {
-        $uid = $req->session()->get('FRONT_USER_ID');
-        $orgId = $req->session()->get('orgId');
-        $candidate_email = $req->cand_email;
-        $org = DB::table('users')
-            ->where('id', $uid)
-            ->first();
-        $email = $org->email;
-        $employer = DB::table('employer')
-            ->where('id', $orgId)
-            ->first();
+        // Retrieve organization details
+        $org = DB::table('employer')->where('id', $orgId)->first();
+        $uid = $org->uid;
+        $orgEmail = DB::table('users')->where('id', $uid)->first();
+        // Retrieve candidate details
+        $candidateName = '';
+        if ($req->session()->has('FRONT_USER_ID')) {
+            $cand_uid = $req->session()->get('FRONT_USER_ID');
+            $candidate = DB::table('users')->select('name')->where('id', $cand_uid)->first();
+            if ($candidate) {
+                $candidateName = $candidate->name;
+            }
+        }
 
-        $arr = [
-            "orgId" => $orgId,
-            "uid" => $uid,
-            "host_email" => $email,
-            "topic" => $employer->tittle,
-            "start_time"=> $req->start_time,
-            "timezone" => $req->timezone,
-            "candidate_email" => $candidate_email,
+        // Compose email data
+        $data = [
+            'name' => $candidateName,
+            'tittle' => $org->tittle,
+            'cand_uid' => $cand_uid,
+            'orgId' => $orgId,
+            // Add more candidate profile information here if needed
         ];
 
-        // Check if the meeting already exists
-        $meeting = DB::table('zoom_meetings')
-            ->where('uid', $uid)
-            ->where('orgId', $orgId)
-            ->first();
+        $recipientEmail = $orgEmail->email;
 
-        if ($meeting) {
-            // Update the meeting
-            DB::table('zoom_meetings')
-                ->where('id', $meeting->id)
-                ->update($arr);
-        } else {
-            // Insert a new meeting
-            DB::table('zoom_meetings')->insert($arr);
-        }
+        // Send email notification to organization
+        Mail::send('candidate_found', $data, function ($message) use ($recipientEmail) {
+            $message->to($recipientEmail)
+                ->subject('Notification: Candidate Found');
+        });
 
-        return response()->json(['success' => true, 'msg' => 'Meeting saved successfully']);
-    }else{
-        return response()->json(['error' => true, 'msg' => 'User not Found']);
+        // Return a response indicating success or failure
+        return response()->json(['status' => 'success']);
     }
-}
 
+    public function storeMeeting(Request $req)
+    {
+        if ($req->session()->has('FRONT_USER_ID') && $req->session()->has('orgId')) {
+            $uid = $req->session()->get('FRONT_USER_ID');
+            $orgId = $req->session()->get('orgId');
+            $candidate_email = $req->cand_email;
+            $org = DB::table('users')
+                ->where('id', $uid)
+                ->first();
+            $email = $org->email;
+            $employer = DB::table('employer')
+                ->where('id', $orgId)
+                ->first();
 
+            $arr = [
+                "orgId" => $orgId,
+                "uid" => $uid,
+                "host_email" => $email,
+                "topic" => $employer->tittle,
+                "start_time" => $req->start_time,
+                "timezone" => $req->timezone,
+                "candidate_email" => $candidate_email,
+            ];
 
+            // Check if the meeting already exists
+            $meeting = DB::table('zoom_meetings')
+                ->where('uid', $uid)
+                ->where('orgId', $orgId)
+                ->first();
+
+            if ($meeting) {
+                // Update the meeting
+                DB::table('zoom_meetings')
+                    ->where('id', $meeting->id)
+                    ->update($arr);
+            } else {
+                // Insert a new meeting
+                DB::table('zoom_meetings')->insert($arr);
+            }
+
+            return response()->json(['success' => true, 'msg' => 'Meeting saved successfully']);
+        } else {
+            return response()->json(['error' => true, 'msg' => 'User not Found']);
+        }
+    }
 }

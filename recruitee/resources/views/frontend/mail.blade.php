@@ -7,6 +7,7 @@
 </head>
 
 <body>
+   
     <h1>{{ $mailData['name'] }}</h1>
     <h1>{{ $mailData['otp'] }}</h1>
 

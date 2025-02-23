@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Form</title>
+    <title>Otp Verification</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css?family=Poppins:600&display=swap" rel="stylesheet">
     <style>
@@ -63,62 +64,6 @@
             font-size: 2.9rem;
         }
 
-        .input-div {
-            position: relative;
-            display: grid;
-            grid-template-columns: 7% 93%;
-            margin: 25px 0;
-            padding: 5px 0;
-            border-bottom: 2px solid #d9d9d9;
-        }
-
-        .i {
-            color: #d9d9d9;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .input-div > div {
-            position: relative;
-            height: 45px;
-        }
-
-        .input-div > div > h5 {
-            position: absolute;
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #999;
-            font-size: 18px;
-            transition: .3s;
-            opacity: 1; /* Keep the hint visible until user types */
-        }
-
-        .input-div.focus > div > h5 {
-            top: -10px;
-            font-size: 15px;
-            color: #38d39f;
-        }
-
-        .input-div.focus > .i > i {
-            color: #38d39f;
-        }
-
-        .input-div > div > input {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-            outline: none;
-            background: none;
-            padding: 0.5rem 0.7rem;
-            font-size: 1.2rem;
-            color: #555;
-            font-family: 'Poppins', sans-serif;
-        }
 
         .btn {
             display: block;
@@ -167,6 +112,37 @@
             display: none;
         }
 
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 10px 0;
+            display: inline-block;
+            border: 2px solid #3498db;
+            border-radius: 25px;
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: 0.3s;
+            outline: none;
+            background: #f9f9f9;
+        }
+
+        input[type="text"]:focus {
+            border-color: #2ecc71;
+            background: #ffffff;
+            box-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
+        }
+
+        input[type="text"]::placeholder {
+            color: #999;
+            font-style: italic;
+        }
+
+        input[type="text"]:hover {
+            border-color: #33c292;
+            box-shadow: 0 0 10px #33c292;
+        }
+
+
         @media screen and (max-width: 900px) {
             .container {
                 grid-template-columns: 1fr;
@@ -178,40 +154,39 @@
         }
     </style>
 </head>
+
 <body>
 
-<div class="container">
-    <div class="img">
-        <img src="storage/media/mobile.svg" alt="Mobile Illustration">
-    </div>
-    <div class="login-content">
-        <form id="login-form" method="post" action="">
-        @csrf
-            <img src="/storage/media/avatar (1).svg" alt="Avatar">
-            <h2 class="title">Otp Verification</h2>
-
-            <!-- Email Field -->
-            <div class="input-div one">
-                <div class="i">
-                    <i class="fas fa-user"></i>
+    <div class="container">
+        <div class="img">
+            <img src="storage/media/mobile.svg" alt="Mobile Illustration">
+        </div>
+        <div class="login-content">
+            <form id="login-form" method="post" action="{{ route('otp.verify') }}">
+                @csrf
+                <img src="/storage/media/avatar (1).svg" alt="Avatar">
+                <h2 class="title">OTP Verification</h2>
+            
+                <!-- OTP Input Field -->
+                <div class="input-div one">
+                    <div class="div">
+                        <label for="otp">Enter OTP</label>
+                        <input type="text" id="otp" name="otp" placeholder="Enter OTP" required minlength="4" maxlength="6">
+                    </div>
                 </div>
-                <div class="div">
-                    <h5>Otp</h5>
-                    <input type="otp" name="email" id="login-email" class="input" placeholder=" " required>
-                    <span class="error-message" id="email-error" name="otp">Otp</span>
-                </div>
-            </div>
-            <input name="email" value="{{$user->email}}" name="email">
-
-            <!-- Password Field -->
-
-
-            <input type="submit" class="btn" value="Login" disabled id="submit-btn">
-        </form>
+            
+                <!-- Hidden Email Field -->
+                <input type="hidden" name="email" value="{{ $user->email }}">
+            
+                <!-- Submit Button -->
+                <input type="submit" class="btn" value="Verify" id="submit-btn">
+            </form>
+            
+        </div>
     </div>
-</div>
 
 
 
 </body>
+
 </html>
