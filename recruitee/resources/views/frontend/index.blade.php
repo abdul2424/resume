@@ -82,9 +82,9 @@
                                 <div class="main-menu">
                                     <nav class="d-none d-lg-block">
                                         <ul id="navigation">
-                                            <li><a href="index.html">Home</a></li>
-                                            <li><a href="job_listing.html">Find a Jobs </a></li>
-                                            <li><a href="about.html">About</a></li>
+                                            <li><a href="{{url('/hello')}}">Home</a></li>
+                                            <li><a href="{{route('ourcustomer')}}">Our Customer </a></li>
+                                            <li><a href="{{route('frontend.aboutus')}}">About</a></li>
                                             <li><a href="#">Our Plan</a>
                                                 {{-- <ul class="submenu">
                                                     <li><a href="blog.html">Blog</a></li>

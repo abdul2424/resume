@@ -21,7 +21,11 @@
                         <form action="#" class="search-box">
                            
                             <div class="search-form">
+                              <div class="row">
                                 <a href="{{url('/candidate')}}">Want job</a>
+                                <a href="{{url('/organization')}}" class="mt-3">Post Job</a>
+                              </div>
+                                
                             </div>
                         </form>
                     </div>

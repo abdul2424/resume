@@ -59,6 +59,9 @@ Route::view('/contact', 'frontend.contact')->name('frontend.contact');
 Route::post('/contact/store',[ContactController::class,'store'])->name('contact.store');
 Route::get('/otp/{id}',[RecruitersController::class,'sendOtp'])->name('otp.send');
 Route::post('/verify/otp',[RecruitersController::class,'verifyOtp'])->name('otp.verify');
+Route::view('/aboutus','frontend.aboutus')->name('frontend.aboutus');
+
+Route::view('/our/customer','frontend.customer')->name('ourcustomer');
 
 
 Route::get('/organization', function (Illuminate\Http\Request $req) {
