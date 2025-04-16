@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+
+use App\Models\Admin;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -18,5 +20,13 @@ class DatabaseSeeder extends Seeder
         //     'name' => 'Test User',
         //     'email' => 'test@example.com',
         // ]);
+
+        Admin::create([
+            'name' => 'Recruiters',
+            'email' => 'admin@gmail.com',
+            'email_verified_at' => now(),
+            'password' => '12345',// password
+         
+        ]);
     }
 }
